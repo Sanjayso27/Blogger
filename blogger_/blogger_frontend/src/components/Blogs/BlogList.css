@@ -1,0 +1,10 @@
+.blog-list {
+    list-style: none;
+    /* y x */
+    margin: 1rem auto;
+    padding: 0;
+    /* 90% of the parent container */
+    width: 90%;
+    max-width: 40rem;
+  }
+  

@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+Bhai+2&family=Roboto:wght@300&display=swap");
+.blogOne--wrap {
+  position: relative;
+  width: 100%;
+  height: 40vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* good for fitting the background */
+  background-size: cover;
+}
+
+.blogOne--container {
+    width: 100%;
+    height: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.blogOne--p {
+  color: white;
+  font-family: "Baloo Bhai 2", cursive;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.blogOne--h1,
+.blogOne--h3 {
+    margin: 5px 0px;
+  color: black;
+  font-family: "Baloo Bhai 2", cursive;
+}
+
+.metaData {
+  display: flex;
+  justify-content: space-between;
+}
+
+.likeBtn {
+    padding-left: 34px;
+}
+
+.likeBtn:hover {
+    cursor:pointer;
+    background: lightblue;
+}
