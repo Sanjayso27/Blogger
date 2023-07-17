@@ -10,6 +10,8 @@ import { useHttpClient } from "../hooks/http-hook";
 import LoadingSpinner from "../components/UIElements/LoadingSpinner";
 import ErrorModal from "../components/UIElements/ErrorModal";
 import { AuthContext } from "../context/auth-context";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const UpdateBlog = (props) => {
   // since we used blogId in the dynamic segment in the route
@@ -125,22 +127,39 @@ const UpdateBlog = (props) => {
           id="Description"
           element="textarea"
           label="Description"
+          rows={3}
           validators={[VALIDATOR_MINLENGTH(5)]}
           errorText="Please enter a valid description(min 5 characters)"
           onInput={inputHandler}
           initialValue={loadedBlog.description}
           initialValid={true}
         />
-        <Input
+        {/* <Input
           id="Content"
           element="textarea"
           label="Content"
+          rows={10}
           validators={[VALIDATOR_MINLENGTH(20)]}
           errorText="Please enter a valid content(min 20 characters)"
           onInput={inputHandler}
           initialValue={loadedBlog.content}
           initialValid={true}
+        /> */}
+        <div className="ckeditor">
+        <label htmlFor={"Content"}>{"Content"}</label>
+        <CKEditor
+            editor={ ClassicEditor }
+            data={loadedBlog.content}
+            // onReady={ editor => {
+            //     // You can store the "editor" and use when it is needed.
+            //     console.log( 'Editor is ready to use!', editor );
+            // } }
+            onChange={ ( event, editor ) => {
+                const data = editor.getData();
+                inputHandler("Content",data,true)
+            } }
         />
+        </div>
         <Button type="submit" disabled={!formState.isValid}>
           UPDATE BLOG
         </Button>

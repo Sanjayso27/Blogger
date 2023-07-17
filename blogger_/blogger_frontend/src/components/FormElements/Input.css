@@ -8,7 +8,7 @@
   display: block;
 }
 
-.form-control label {
+label {
   font-weight: bold;
   margin-bottom: 0.5rem;
 }

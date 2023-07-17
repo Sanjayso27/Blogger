@@ -11,6 +11,8 @@ import { useContext } from "react";
 import { AuthContext } from "../context/auth-context";
 import { useHttpClient } from "../hooks/http-hook";
 import ImageUpload from "../components/FormElements/ImageUpload";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const NewBlog = () => {
   const auth = useContext(AuthContext);
@@ -86,6 +88,7 @@ const NewBlog = () => {
           element="textarea"
           id="description"
           label="description"
+          rows={3}
           validators={[VALIDATOR_MINLENGTH(5)]}
           errorText="Please enter a valid description(atleast 5 characters)"
           onInput={InputHandler}
@@ -94,6 +97,7 @@ const NewBlog = () => {
           element="textarea"
           id="content"
           label="content"
+          rows={10}
           validators={[VALIDATOR_MINLENGTH(20)]}
           errorText="Please enter a valid content(atleast 20 characters)"
           onInput={InputHandler}

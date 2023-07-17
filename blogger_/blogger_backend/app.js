@@ -54,12 +54,13 @@ app.use((error, req, res, next) => {
   res.status(error.code || 500);
   res.json({ message: error.message || "Unknown error occured!" });
 });
-
+// 8gllHWy76H7TsML3
 mongoose
   .connect(
-    `mongodb+srv://Sanjay:Sanjay@cluster0.yu4vq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
+    `mongodb+srv://sanjaykannu27:8gllHWy76H7TsML3@cluster0.dm6mz8y.mongodb.net/blogs?retryWrites=true&w=majority`
+    // `mongodb+srv://Sanjay:Sanjay@cluster0.yu4vq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
   )
   .then(() => {
-    app.listen(5000);
+    app.listen(5000 );
   })
   .catch((err) => console.log(err));

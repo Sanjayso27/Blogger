@@ -5,14 +5,44 @@ import LoadingSpinner from "../components/UIElements/LoadingSpinner";
 import { useHttpClient } from "../hooks/http-hook";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { AuthContext } from "../context/auth-context";
 import "./BlogOne.css";
+import Comment from "../components/Comments/Comment";
+import "../components/Comments/Comment.css";
+
+const comments={
+  id: 1,
+  items: [
+    {
+      id: 2,
+      name: "hello",
+      items: [
+        {
+          id:3,
+          name: "hello world"
+          ,items:[
+            {
+              id:4,
+              name: "hello world universe"
+            }
+          ]
+        },{
+          id: 5,
+          name: "hello moon"
+        }
+      ]
+    }
+  ]
+};
 
 const BlogOne = () => {
   const blogId = useParams().blogId;
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [loadedBlog, setLoadedBlog] = useState();
   const [likeCount, setLikeCount] = useState(0);
+  const [commentsData,setCommentsData]=useState(comments);
   const auth = useContext(AuthContext);
 
   useEffect(() => {
@@ -63,7 +93,6 @@ const BlogOne = () => {
       }
     } catch (err) {}
   };
-
   return (
     <>
       <ErrorModal error={error} onClear={clearError} />
@@ -90,7 +119,14 @@ const BlogOne = () => {
             </div>
           </div>
           <hr />
-          <p className="blogOne--p">{loadedBlog.content}</p>
+          {/* <p className="blogOne--p"></p> */}
+          <CKEditor
+              editor={ ClassicEditor }
+              data={loadedBlog.content}
+              disabled={true}
+          />
+          {/* <div contentEditable="true">{loadedBlog.content}</div> */}
+          <Comment comment={comments}/>
         </>
       )}
     </>
