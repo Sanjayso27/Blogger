@@ -8,33 +8,15 @@ import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { AuthContext } from "../context/auth-context";
+import {useNode} from "../hooks/useNode";
+import { useComment } from "../hooks/useComment";
 import "./BlogOne.css";
 import Comment from "../components/Comments/Comment";
 import "../components/Comments/Comment.css";
 
 const comments={
   id: 1,
-  items: [
-    {
-      id: 2,
-      name: "hello",
-      items: [
-        {
-          id:3,
-          name: "hello world"
-          ,items:[
-            {
-              id:4,
-              name: "hello world universe"
-            }
-          ]
-        },{
-          id: 5,
-          name: "hello moon"
-        }
-      ]
-    }
-  ]
+  items: []
 };
 
 const BlogOne = () => {
@@ -42,9 +24,43 @@ const BlogOne = () => {
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [loadedBlog, setLoadedBlog] = useState();
   const [likeCount, setLikeCount] = useState(0);
-  const [commentsData,setCommentsData]=useState(comments);
   const auth = useContext(AuthContext);
-
+  const [commentsData,setCommentsData]=useState(comments);
+  // const {insertNode,editNode,deleteNode}=useNode();
+  const {insertComment,editComment,deleteComment}=useComment();
+  const handleInsertComment=(commentId,comment)=>{
+    insertComment(loadedBlog.blogId,commentId,comment,sendRequest);
+    fetchComment();
+  }
+  const handleEditComment=(commentId,comment)=>{
+    editComment(loadedBlog.blogId,commentId,comment,sendRequest);
+    fetchComment();
+  }
+  const handleDeleteComment=(commentId)=>{
+    deleteComment(loadedBlog.blogId,commentId,sendRequest);
+    fetchComment();
+  }
+  // const handleInsertNode = (folderId,item)=>{
+  //   const finalStructure= insertNode(commentsData,folderId,item);
+  //   setCommentsData(finalStructure);
+  // }
+  // const handleEditNode = (folderId,value)=>{
+  //   const finalStructure=editNode(commentsData,folderId,value);
+  //   setCommentsData(finalStructure);
+  // }
+  // const handleDeleteNode=(folderId)=>{
+  //   const finalStructure= deleteNode(commentsData,folderId);
+  //   const temp={...finalStructure};
+  //   setCommentsData(temp);
+  // }
+  const fetchComment = async ()=>{
+    try{
+      const responseData = await sendRequest(
+        `http://localhost:5000/api/comments/${blogId}`
+      );
+      setCommentsData(responseData.comments);
+    } catch(err){}
+  }
   useEffect(() => {
     const fetchBlog = async () => {
       try {
@@ -64,6 +80,7 @@ const BlogOne = () => {
       } catch(err) {}
     }
     fetchLikeCount();
+    fetchComment();
   }, [sendRequest]);
 
   const likeHandler = async (event) => {
@@ -126,7 +143,12 @@ const BlogOne = () => {
               disabled={true}
           />
           {/* <div contentEditable="true">{loadedBlog.content}</div> */}
-          <Comment comment={comments}/>
+          <Comment 
+          comment={commentsData}
+          handleDeleteNode={handleDeleteComment}
+          handleEditNode={handleEditComment}
+          handleInsertNode={handleInsertComment}
+          />
         </>
       )}
     </>
