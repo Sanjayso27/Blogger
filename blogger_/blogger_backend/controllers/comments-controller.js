@@ -1,0 +1,132 @@
+const mongoose = require("mongoose");
+const HttpError = require("../models/http-error");
+const { validationResult } = require("express-validator");
+const Blog = require("../models/blog");
+const User = require("../models/user");
+const Comment=require("../models/comment");
+
+const getCommentsByBlogId=async (req,res,next)=>{
+    const blogId=req.params.bid;
+    let comments;
+    try{
+        comments = await Comment.find({blogId:blogId}).sort({date: 1}).exec();
+    }catch(err){
+        return next(new HttpError("Couldn't get the comments from the database", 500));
+    }
+    if(!comments){
+        return next(
+            new HttpError("Couldn't find the comments for provided blog Id", 404)
+          );
+    }
+    comments=comments.map(comment=>comment.toObject())
+    let add=(comment,threads)=>{
+        for(let thread in threads){
+            value=threads[thread];
+            if(thread.toString()===comment.parentId.toString()){
+                value.children[comment._id]=comment;
+                return;
+            }
+            if(value.children){
+                add(comment,value.children);
+            }
+        }
+    }
+    // console.log(comments) 
+    let threads={},comment;
+    for(let i=0;i<comments.length;i++){
+        comment=comments[i];
+        comment['children']={}
+        let parentId=comment.parentId
+        if(!parentId){
+            threads[comment._id]=comment;
+            continue;
+        }
+        add(comment,threads)
+    }
+    res.json({
+        'comments': threads
+    })
+}
+const insertComment=async (req,res,next)=>{
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(new HttpError("Provided data is invalid,Please check!", 422));
+  }
+  const tmpComment={};
+  tmpComment.content=req.body.content;
+  tmpComment.creator=req.body.creator;
+  tmpComment.blogId=req.body.blogId;
+  if(req.body.parentId)tmpComment.parentId=req.body.parentId;
+  const createdComment = new Comment(tmpComment);
+  try{
+    await createdComment.save();
+    res.status(201).json({ comment: createdComment });
+  }
+  catch(err){ res.status(500).json({error: err})}
+}
+const updateComment=async(req,res,next)=>{
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return next(new HttpError("Provided data is invalid,Please check!", 422));
+    }
+    const commentId=req.params.cid;
+    let content=req.body.content,comment;
+    try{
+        comment=await Comment.findById(commentId)
+    }catch(err){
+        return next(new HttpError("Couldn't find the comment", 500));
+    }
+    if(!comment){
+        return next(
+            new HttpError("Couldn't find the comments for provided  Id", 404)
+          );
+    }
+    comment.content=content;
+    try {
+        // there is save() function associated with blog returned using .findById as well
+        await comment.save();
+      } catch (err) {
+        return next(
+          new HttpError("Couldn't save the updated comment into the database!", 500)
+        );
+      }
+    res.status(200).json({ comment: comment.toObject({ getters: true }) });
+}
+const deleteComment=async (req,res,next)=>{
+    let deleteComments=[];
+    let commentId=req.params.cid,comment;
+    try{
+        comment=await Comment.findById(commentId)
+    }catch(err){
+        return next(new HttpError("Couldn't find the comment", 500));
+    }
+    if(!comment){
+        return next(
+            new HttpError("Couldn't find the comments for provided  Id", 404)
+          );
+    }
+    comment=comment.toObject();
+    // console.log(comment);
+    let rec=(comment)=>{
+        deleteComments.push(comment._id);
+        if(comment.children){
+            comment.children.map(ch=>rec(ch));
+        }
+    }
+    rec(comment);
+    console.log(deleteComments);
+    for(let i=0;i<deleteComments.length;i++){
+        cur=deleteComments[i];
+        try{
+            await Comment.deleteOne({_id:cur});
+        }catch (err) {
+            return next(new HttpError("Couldn't delete the comment!", 500));
+        }
+    }
+    res.status(200).json({ message: "Deleted" });
+}
+
+exports.getCommentsByBlogId=getCommentsByBlogId;
+exports.insertComment=insertComment;
+exports.updateComment=updateComment;
+exports.deleteComment=deleteComment;

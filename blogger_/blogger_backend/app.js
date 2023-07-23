@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 
 const blogsRoutes = require("./routes/blogs-routes");
 const usersRoutes = require("./routes/users-routes");
+const commentRoutes = require("./routes/comment-routes")
 const HttpError = require("./models/http-error");
 
 const app = express();
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 
 app.use("/api/blogs", blogsRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.use((req, res, next) => {
   throw new HttpError("Couldn't find the requested page!", 404);
