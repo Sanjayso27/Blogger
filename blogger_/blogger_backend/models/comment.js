@@ -6,7 +6,7 @@ const commentSchema = new mongoose.Schema({
     // establish connection between user and comment schema ref:model name
     creator: { type: mongoose.Types.ObjectId ,required:true,ref:'User'},
     blogId: {type: mongoose.Types.ObjectId,required:true,ref:'Blog'},
-    parentId: {type: mongoose.Types.ObjectId}
+    parentId: {}
   });
   
   module.exports = mongoose.model("Comment", commentSchema);

@@ -14,7 +14,8 @@ router.get("/:bid", getCommentsByBlogId);
 router.post(
     "/",
     [
-      check("content").not().isEmpty()
+      check("content").not().isEmpty(),
+      check("creator").notEmpty()
     ],
     insertComment
 );
