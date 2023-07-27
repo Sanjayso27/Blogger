@@ -14,10 +14,7 @@ import "./BlogOne.css";
 import Comment from "../components/Comments/Comment";
 import "../components/Comments/Comment.css";
 
-const comments={
-  id: 1,
-  items: []
-};
+
 
 const BlogOne = () => {
   const blogId = useParams().blogId;
@@ -25,20 +22,17 @@ const BlogOne = () => {
   const [loadedBlog, setLoadedBlog] = useState();
   const [likeCount, setLikeCount] = useState(0);
   const auth = useContext(AuthContext);
-  const [commentsData,setCommentsData]=useState(comments);
+  const [commentsData,setCommentsData]=useState();
   // const {insertNode,editNode,deleteNode}=useNode();
-  const {insertComment,editComment,deleteComment}=useComment();
+  const {insertComment,editComment,deleteComment}=useComment(null);
   const handleInsertComment=(commentId,comment)=>{
-    insertComment(loadedBlog.blogId,commentId,comment,sendRequest);
-    fetchComment();
+    insertComment(blogId,commentId,comment,auth.userId,sendRequest);
   }
   const handleEditComment=(commentId,comment)=>{
-    editComment(loadedBlog.blogId,commentId,comment,sendRequest);
-    fetchComment();
+    editComment(blogId,commentId,comment,sendRequest);
   }
   const handleDeleteComment=(commentId)=>{
     deleteComment(loadedBlog.blogId,commentId,sendRequest);
-    fetchComment();
   }
   // const handleInsertNode = (folderId,item)=>{
   //   const finalStructure= insertNode(commentsData,folderId,item);
@@ -54,11 +48,12 @@ const BlogOne = () => {
   //   setCommentsData(temp);
   // }
   const fetchComment = async ()=>{
-    try{
+  try{
       const responseData = await sendRequest(
         `http://localhost:5000/api/comments/${blogId}`
       );
-      setCommentsData(responseData.comments);
+      setCommentsData(Object.values(responseData.comments)[0]);
+      console.log(Object.values(responseData.comments));
     } catch(err){}
   }
   useEffect(() => {
@@ -143,12 +138,12 @@ const BlogOne = () => {
               disabled={true}
           />
           {/* <div contentEditable="true">{loadedBlog.content}</div> */}
-          <Comment 
+          {commentsData &&  <Comment 
           comment={commentsData}
           handleDeleteNode={handleDeleteComment}
           handleEditNode={handleEditComment}
           handleInsertNode={handleInsertComment}
-          />
+          /> }
         </>
       )}
     </>

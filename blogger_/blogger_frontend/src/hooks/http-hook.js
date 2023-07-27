@@ -18,6 +18,7 @@ export const useHttpClient = () => {
         // current stores the current useRef active Http Requests
         // I am not using state for this purpose because I don't wan't to change the UI if the data changes ,this is just the behind scene data.
         activeHttpRequests.current.push(httpAbortCtrl);
+        console.log(body);
         const response = await fetch(url, {
           method,
           body,

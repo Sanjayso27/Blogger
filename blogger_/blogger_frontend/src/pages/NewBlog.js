@@ -56,11 +56,22 @@ const NewBlog = () => {
       formData.append("creator", auth.userId);
       formData.append("date", date);
 
-      await sendRequest(
+      const msg=await sendRequest(
         "http://localhost:5000/api/blogs",
         "POST",
         formData
       );
+      
+      await sendRequest(
+        "http://localhost:5000/api/comments",
+        "POST",
+        JSON.stringify({
+            content:"",
+            creator:auth.userId,
+            blogId:msg._id,
+            parentId:""
+        })
+      )
 
       // redirect the user to a different page
       // allow the user to go the starting page after login

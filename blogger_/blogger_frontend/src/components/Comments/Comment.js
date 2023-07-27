@@ -8,16 +8,17 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
   const [input,setInput]=useState("");
   const [editMode,setEditMode]=useState(false);
   const [showInput,setShowInput]=useState(false);
-  const [expand,setExpand]=useState(false);
+  const [expand,setExpand]=useState(true);
   const inputRef=useRef(null)
   const onAddComment=()=>{
     if(editMode){
-      handleEditNode(comment.id,inputRef?.current?.innerText);
+      handleEditNode(comment._id,inputRef?.current?.innerText);
       setEditMode(false);
     }
     else {
       setExpand(true);
-      handleInsertNode(comment.id,input);
+      console.log(input);
+      handleInsertNode(comment._id,input);
       setShowInput(false);
       setInput("");
     }
@@ -30,17 +31,16 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
     setShowInput(true);
   }
   const handleDelete=()=>{
-    handleDeleteNode(comment.id)
+    handleDeleteNode(comment._id)
   }
   return (
     <div>
-        <div className={comment.id === 1 ? "inputContainer":"commentContainer"}>
-           {comment.id==1? ( 
+        <div className={comment.parentId=="" ? "inputContainer":"commentContainer"}>
+           {comment.parentId==""? ( 
            <>
            <input
             type='text'
             className='inputContainer__input first_input'
-            autoFocus
             placeholder='type..'
             value={input}
             onChange={(e)=>setInput(e.target.value)}
@@ -56,7 +56,7 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
             style={{wordWrap: "break-word"}}
             ref={inputRef}
             >
-              {comment.name}
+              {comment.content}
             </span>
             <div style={{display: "flex",marginTop: "5px"}}>
                 {editMode?(
@@ -64,7 +64,7 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
                         <Action className="reply" type="SAVE" handleClick={onAddComment}/>                    
                         <Action className="reply" type="CANCEL" handleClick={()=>{
                           if(inputRef.current){
-                            inputRef.current.innerText=comment.name
+                            inputRef.current.innerText=comment.content
                           }
                           setEditMode(false)}}/>                    
                     </>):
@@ -98,13 +98,14 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
                       type="CANCEL"
                       handleClick={()=>{
                         setShowInput(false);
-                        if(!comment?.items?.length)setExpand(false);
+                        if(Object.keys(comment?.children)?.length )setExpand(false);
                       }} />
                 </div>
             }
-        {comment?.items?.map((cmnt)=>{
+            {/* {console.log(Object.values(comment?.children))} */}
+        {Object.values(comment?.children)?.map((cmnt)=>{
             return <Comment 
-            key={cmnt.id} 
+            key={cmnt._id} 
             comment={cmnt}
             handleDeleteNode={handleDeleteNode}
             handleEditNode={handleEditNode}
