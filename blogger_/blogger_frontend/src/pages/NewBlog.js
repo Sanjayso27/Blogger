@@ -61,17 +61,19 @@ const NewBlog = () => {
         "POST",
         formData
       );
-      
-      await sendRequest(
+      // console.log(msg)
+      const ret=await sendRequest(
         "http://localhost:5000/api/comments",
         "POST",
         JSON.stringify({
-            content:"",
+            content:"abcdef",
             creator:auth.userId,
-            blogId:msg._id,
+            blogId:msg.blog._id,
             parentId:""
-        })
-      )
+        }),{
+          "Content-Type":"application/json"
+        }
+      );
 
       // redirect the user to a different page
       // allow the user to go the starting page after login
@@ -104,7 +106,7 @@ const NewBlog = () => {
           errorText="Please enter a valid description(atleast 5 characters)"
           onInput={InputHandler}
         />
-        <Input
+        {/* <Input
           element="textarea"
           id="content"
           label="content"
@@ -112,7 +114,22 @@ const NewBlog = () => {
           validators={[VALIDATOR_MINLENGTH(20)]}
           errorText="Please enter a valid content(atleast 20 characters)"
           onInput={InputHandler}
-        />
+        /> */}
+        <div className="ckeditor">
+          <label htmlFor={"Content"}>{"Content"}</label>
+          <CKEditor
+              editor={ ClassicEditor }
+              // data={loadedBlog.content}
+              // onReady={ editor => {
+              //     // You can store the "editor" and use when it is needed.
+              //     console.log( 'Editor is ready to use!', editor );
+              // } }
+              onChange={ ( event, editor ) => {
+                  const data = editor.getData();
+                  InputHandler("content",data,true)
+              } }
+          />
+        </div>
         <Button type="submit" disabled={!formState.isValid}>
           ADD BLOG
         </Button>

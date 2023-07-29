@@ -120,7 +120,19 @@ const deleteComment=async (req,res,next)=>{
     res.status(200).json({ message: "Deleted" });
 }
 
+const deleteCommentByBlogId=async (req,res,next)=>{
+    const blogId=req.params.bid;
+    let comments;
+    try{
+        await Comment.deleteMany({blogId:blogId});
+    }catch(err){
+        return next(new HttpError("Couldn't find the comments from the database", 500));
+    }
+    res.status(200).json({ message: "Deleted" });
+}
+
 exports.getCommentsByBlogId=getCommentsByBlogId;
 exports.insertComment=insertComment;
 exports.updateComment=updateComment;
 exports.deleteComment=deleteComment;
+exports.deleteCommentByBlogId=deleteCommentByBlogId;

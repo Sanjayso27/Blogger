@@ -7,7 +7,8 @@ const {
     getCommentsByBlogId,
     insertComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    deleteCommentByBlogId
 }=require("../controllers/comments-controller")
 
 router.get("/:bid", getCommentsByBlogId);
@@ -25,7 +26,12 @@ router.patch(
         check("content").not().isEmpty()
     ],
     updateComment
+    )
+
+router.delete(
+    "/all/:bid",deleteCommentByBlogId
 )
+
 router.delete(
     "/:cid",deleteComment
 )

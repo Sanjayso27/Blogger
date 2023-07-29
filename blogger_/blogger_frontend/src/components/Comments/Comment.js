@@ -1,14 +1,16 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {useState,useRef,useEffect} from "react"
 import {ReactComponent as DownArrow} from "../../assets/down-arrow.svg"
 import {ReactComponent as UpArrow} from "../../assets/up-arrow.svg"
 import { Action } from './Action'
+import { AuthContext } from '../../context/auth-context'
 
 const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => {
   const [input,setInput]=useState("");
   const [editMode,setEditMode]=useState(false);
   const [showInput,setShowInput]=useState(false);
   const [expand,setExpand]=useState(true);
+  const auth = useContext(AuthContext);
   const inputRef=useRef(null)
   const onAddComment=()=>{
     if(editMode){
@@ -45,7 +47,7 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
             value={input}
             onChange={(e)=>setInput(e.target.value)}
             />
-            <Action className="reply comment" type="COMMENT" handleClick={onAddComment}/>
+            <Action className="reply comment" type="COMMENT" disabled={!auth.isLoggedIn} handleClick={onAddComment}/>
             </>)
            :
            (
@@ -61,8 +63,8 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
             <div style={{display: "flex",marginTop: "5px"}}>
                 {editMode?(
                     <>
-                        <Action className="reply" type="SAVE" handleClick={onAddComment}/>                    
-                        <Action className="reply" type="CANCEL" handleClick={()=>{
+                        <Action className="reply" type="SAVE" handleClick={onAddComment} disabled={!auth.isLoggedIn}/>                    
+                        <Action className="reply" type="CANCEL" disabled={!auth.isLoggedIn} handleClick={()=>{
                           if(inputRef.current){
                             inputRef.current.innerText=comment.content
                           }
@@ -80,8 +82,8 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
                         </>
                     } 
                     handleClick={handleNewComment}/>
-                    <Action className="reply" type="EDIT" handleClick={()=>setEditMode(true)}/>
-                    <Action className="reply" type="DELETE" handleClick={handleDelete}/>
+                    <Action className="reply" type="EDIT" disabled={!auth.isLoggedIn || auth.userId!=comment.creator} handleClick={()=>setEditMode(true)}/>
+                    <Action className="reply" type="DELETE" disabled={!auth.isLoggedIn || auth.userId!=comment.creator} handleClick={handleDelete}/>
                     </>
                 }
             </div>
@@ -92,9 +94,10 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
             {showInput && 
                 <div className='inputContainer'>
                     <input type="text" className="inputContainer__input" autoFocus onChange={e=>setInput(e.target.value)}/>
-                    <Action className="reply" type="REPLY" handleClick={onAddComment}/>
+                    <Action className="reply" type="REPLY" disabled={!auth.isLoggedIn} handleClick={onAddComment}/>
                     <Action
                      className="reply"
+                     disabled={!auth.isLoggedIn}
                       type="CANCEL"
                       handleClick={()=>{
                         setShowInput(false);

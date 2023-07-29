@@ -7,7 +7,7 @@ import LoadingSpinner from "../UIElements/LoadingSpinner";
 import ErrorModal from "../UIElements/ErrorModal";
 import { AuthContext } from "../../context/auth-context";
 import { useHttpClient } from "../../hooks/http-hook";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./BlogItem.css";
 
 const BlogItem = (props) => {
@@ -19,7 +19,7 @@ const BlogItem = (props) => {
 
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const auth = useContext(AuthContext);
-
+  const navigate=useNavigate();
   const confirmDeleteHandler = async () => {
     setShowConfirmModal(false);
     try {
@@ -27,7 +27,11 @@ const BlogItem = (props) => {
         `http://localhost:5000/api/blogs/${props.id}`,
         "DELETE"
       );
-      props.onDelete(props.id);
+      await sendRequest(
+        `http://localhost:5000/api/comments/all/${props.id}`,
+        "DELETE"
+      );
+      navigate("/")
     } catch (err) {}
   };
 
