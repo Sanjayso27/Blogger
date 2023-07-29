@@ -1,7 +1,9 @@
 const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
 const { v4 } = require("uuid");
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
 
 const getUsers = async (req, res, next) => {
   // projection
@@ -38,12 +40,18 @@ const signup = async (req, res, next) => {
   if (existingUser) {
     return next(new HttpError("User already exist.Signup Failed!", 422));
   }
+  let hashedPassword;
+  try{
+    hashedPassword=await bcrypt.hash(password,12);
+  }catch(err){
+    return next(new HttpError("Could not create user,please try again"),500);
+  }
   const createdUser = new User({
     name,
     email,
     image: req.file.path,
     // we will keep password as of now,later we will encrypt the password now
-    password,
+    password:hashedPassword,
     blogs: [],
   });
 
@@ -52,9 +60,16 @@ const signup = async (req, res, next) => {
   } catch (error) {
     return next(new HttpError("Couldn't Signup!", 500));
   }
-  res.status(201).json({ user: createdUser.toObject({ getters: true }) });
-};
-
+  let token;
+  try{
+    token=jwt.sign({
+      userId: createdUser.id,email: createdUser.email
+    },'Sanjay',{expiresIn: '1h'});
+  } catch(err){
+    return next(new HttpError("Couldn't Signup!", 500));
+  }
+  res.status(201).json({userId:createdUser.id,email: createdUser.email,token:token});
+}
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   let existingUser;
@@ -64,13 +79,28 @@ const login = async (req, res, next) => {
   } catch (err) {
     return next(new HttpError("Logging In Failed.Try again later !"), 500);
   }
-  if (!existingUser || existingUser.password !== password) {
+  if (!existingUser) {
     return next(new HttpError("Authentication Failed!", 401));
   }
-  res.json({
-    message: "Logged In!",
-    user: existingUser.toObject({ getters: true }),
-  });
+  let isValidPassword;
+  try{
+    isValidPassword=bcrypt.compare(password,existingUser.password)
+  }catch(err){
+    return next(new HttpError("Couldn't log you in!"),500);
+  }
+  if(!isValidPassword){
+    return next(new HttpError("Authentication Failed!", 401));
+  }
+  let token;
+  try{
+    token=jwt.sign({
+      userId: existingUser.id,email: existingUser.email
+    },'Sanjay',{expiresIn: '1h'});
+  } catch(err){
+    return next(new HttpError("Couldn't Login!", 500));
+  }
+  res.status(201).json({
+    userId:existingUser.id,email: existingUser.email,token:token});
 };
 
 exports.getUsers = getUsers;

@@ -1,7 +1,7 @@
 const express = require("express");
 const { check } = require("express-validator");
 const fileUpload = require("../middleware/file-upload")
-
+const checkAuth=require("../middleware/check-auth");
 const {
   getBlogs,
   getBlogById,
@@ -19,9 +19,12 @@ router.get("/", getBlogs);
 
 router.get("/:bid", getBlogById);
 router.get("/:bid/likedUsers", getLikedUsers);
+router.get("/user/:uid", getBlogsByUserId);
+
+router.use(checkAuth);
+
 router.patch("/:bid/likedUsers", updateLikedUsers);
 
-router.get("/user/:uid", getBlogsByUserId);
 
 // we can also add multiple middlewares which gets executed from left-right.
 // check takes the property in our request body which need to be validated and the whole chain returns a middleware

@@ -13,17 +13,17 @@ import BlogOne from "./pages/BlogOne";
 import Home from "./pages/Home";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const login = useCallback((uid) => {
-    setIsLoggedIn(true);
+  const login = useCallback((uid,token) => {
+    setToken(token);
     setUserId(uid);
   }, []);
   const logout = useCallback(() => {
-    setIsLoggedIn(false);
+    setToken(null);
     setUserId(null);
   }, []);
-  const routes = isLoggedIn ? (
+  const routes = token ? (
     <>
       <Route path="/" element={<Home />} />
       <Route path="/blogs" element={<Blogs />} />
@@ -48,7 +48,8 @@ function App() {
   return (
     <AuthContext.Provider
       value={{
-        isLoggedIn: isLoggedIn,
+        isLoggedIn: !!token,
+        token: token,
         userId: userId,
         login: login,
         logout: logout,
