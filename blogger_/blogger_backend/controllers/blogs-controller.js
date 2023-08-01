@@ -171,7 +171,9 @@ const updateBlog = async (req, res, next) => {
   } catch (err) {
     return next(new HttpError("Something went wrong during update blog", 500));
   }
-
+  if(blog.creator.toString() !==req.userData.userId){
+    return next(new HttpError('You are not allowed to edit this place',401));
+  }
   blog.title = title;
   blog.description = description;
   blog.content = content;
@@ -205,6 +207,10 @@ const deleteBlog = async (req, res, next) => {
   if (!blog) {
     return next(new HttpError("Couldn't find blog with id!", 404));
   }
+
+if(place.creator.id!==req.userData.userId){
+  return next(new HttpError('You are not allowed to delete this place',401));
+}
 
   try {
     const sess = await mongoose.startSession();
