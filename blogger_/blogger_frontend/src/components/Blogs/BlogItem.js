@@ -25,11 +25,19 @@ const BlogItem = (props) => {
     try {
       await sendRequest(
         `http://localhost:5000/api/blogs/${props.id}`,
-        "DELETE"
+        "DELETE",
+        null,
+        {
+          Authorization: "Bearer "+ auth.token
+        }
       );
       await sendRequest(
         `http://localhost:5000/api/comments/all/${props.id}`,
-        "DELETE"
+        "DELETE",
+        null,
+        {
+          Authorization: "Bearer "+ auth.token
+        }
       );
       navigate("/")
     } catch (err) {}

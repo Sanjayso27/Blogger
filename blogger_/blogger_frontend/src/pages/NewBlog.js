@@ -60,10 +60,12 @@ const NewBlog = () => {
         "http://localhost:5000/api/blogs",
         "POST",
         formData,{
-          Authorization: "Bearer "+auth.token
+          Authorization: "Bearer "+auth.token,
+          // "Content-Type":"application/json"
         }
+        
       );
-      // console.log(msg)
+      console.log(msg)
       const ret=await sendRequest(
         "http://localhost:5000/api/comments",
         "POST",
@@ -74,9 +76,7 @@ const NewBlog = () => {
             parentId:""
         }),
         {
-          Authorization: "Bearer "+auth.token
-        },
-        {
+          Authorization: "Bearer "+auth.token,
           "Content-Type":"application/json"
         }
       );

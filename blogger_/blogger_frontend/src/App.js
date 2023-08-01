@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
 import { AuthContext } from "./context/auth-context";
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -11,18 +11,10 @@ import Auth from "./pages/Auth";
 import MainNavigation from "./components/Navigation/MainNavigation";
 import BlogOne from "./pages/BlogOne";
 import Home from "./pages/Home";
+import {useAuth} from "./hooks/auth-hook";
 
 function App() {
-  const [token, setToken] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const login = useCallback((uid,token) => {
-    setToken(token);
-    setUserId(uid);
-  }, []);
-  const logout = useCallback(() => {
-    setToken(null);
-    setUserId(null);
-  }, []);
+  const {token,userId,login,logout}=useAuth();
   const routes = token ? (
     <>
       <Route path="/" element={<Home />} />

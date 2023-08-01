@@ -85,7 +85,8 @@ const UpdateBlog = (props) => {
         content:formState.inputs.Content.value,
         date,
       }),{
-        "Content-Type":"application/json"
+        "Content-Type":"application/json",
+        Authorization: "Bearer "+ auth.token
       })
       navigate(`/${auth.userId}/blogs`);
     }catch(err){}
