@@ -43,7 +43,7 @@ const UpdateBlog = (props) => {
     const fetchBlog = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/blogs/${blogId}`
+          process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}`
         );
         setLoadedBlog(responseData.blog);
         setFormData(
@@ -79,7 +79,7 @@ const UpdateBlog = (props) => {
       const yyyy = today.getFullYear();
 
       const date = dd + "/" + mm + "/" + yyyy;
-      await sendRequest(`http://localhost:5000/api/blogs/${blogId}`,"PATCH",JSON.stringify({
+      await sendRequest(process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}`,"PATCH",JSON.stringify({
         title: formState.inputs.Title.value,
         description:formState.inputs.Description.value,
         content:formState.inputs.Content.value,

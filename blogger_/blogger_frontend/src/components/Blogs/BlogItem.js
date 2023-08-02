@@ -24,7 +24,7 @@ const BlogItem = (props) => {
     setShowConfirmModal(false);
     try {
       await sendRequest(
-        `http://localhost:5000/api/blogs/${props.id}`,
+        process.env.REACT_APP_BACKEND_URL+`/blogs/${props.id}`,
         "DELETE",
         null,
         {
@@ -32,7 +32,7 @@ const BlogItem = (props) => {
         }
       );
       await sendRequest(
-        `http://localhost:5000/api/comments/all/${props.id}`,
+        process.env.REACT_APP_BACKEND_URL+`/comments/all/${props.id}`,
         "DELETE",
         null,
         {
@@ -72,7 +72,7 @@ const BlogItem = (props) => {
           <div className="blog-item__link">
             <Link to={`/blogs/ind/${props.id}`}>
               <div className="blog-item__image">
-                <img src={`http://localhost:5000/${props.image}`} alt={props.title} />
+                <img src={process.env.REACT_APP_ASSEST_URL+`/${props.image}`} alt={props.title} />
               </div>
             </Link>
           </div>

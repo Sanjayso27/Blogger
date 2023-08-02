@@ -46,6 +46,7 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
             placeholder='type..'
             value={input}
             onChange={(e)=>setInput(e.target.value)}
+            size={50}
             />
             <Action className="reply comment" type="COMMENT" disabled={!auth.isLoggedIn} handleClick={onAddComment}/>
             </>)
@@ -93,7 +94,7 @@ const Comment = ({comment,handleInsertNode,handleDeleteNode,handleEditNode}) => 
         <div style={{ display:expand?"block":"none",paddingLeft: 25}}>
             {showInput && 
                 <div className='inputContainer'>
-                    <input type="text" className="inputContainer__input" autoFocus onChange={e=>setInput(e.target.value)}/>
+                    <input type="text" className="inputContainer__input" autoFocus onChange={e=>setInput(e.target.value)} size={35}/>
                     <Action className="reply" type="REPLY" disabled={!auth.isLoggedIn} handleClick={onAddComment}/>
                     <Action
                      className="reply"

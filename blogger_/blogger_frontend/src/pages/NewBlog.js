@@ -57,7 +57,7 @@ const NewBlog = () => {
       formData.append("date", date);
 
       const msg=await sendRequest(
-        "http://localhost:5000/api/blogs",
+        process.env.process.env.REACT_APP_BACKEND_URL+"blogs",
         "POST",
         formData,{
           Authorization: "Bearer "+auth.token,
@@ -67,7 +67,7 @@ const NewBlog = () => {
       );
       console.log(msg)
       const ret=await sendRequest(
-        "http://localhost:5000/api/comments",
+        process.env.REACT_APP_BACKEND_URL+"/comments",
         "POST",
         JSON.stringify({
             content:"abcdef",

@@ -64,7 +64,7 @@ const Auth = (props) => {
     if (isLogInMode) {
       try {
         const responseData = await sendRequest(
-          "http://localhost:5000/api/users/login",
+          process.env.REACT_APP_BACKEND_URL+"/users/login",
           "POST",
           JSON.stringify({
             email: formState.inputs.Email.value,
@@ -86,7 +86,7 @@ const Auth = (props) => {
         formData.append('image',formState.inputs.image.value)
         // fetch api automatically adds the header for the formData
         const responseData = await sendRequest(
-          "http://localhost:5000/api/users/signup",
+          process.env.REACT_APP_BACKEND_URL+"/users/signup",
           "POST",
           formData
         );

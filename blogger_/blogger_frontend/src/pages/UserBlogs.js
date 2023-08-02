@@ -17,7 +17,7 @@ const UserBlogs = (props) => {
     useEffect(() => {
       const fetchBlogs = async () => {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/blogs/user/${userId}`
+          process.env.REACT_APP_BACKEND_URL+`/blogs/user/${userId}`
         );
         setLoadedBlogs(responseData.blogs);
       };

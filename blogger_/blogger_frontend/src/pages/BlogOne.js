@@ -26,13 +26,13 @@ const BlogOne = () => {
   // const {insertNode,editNode,deleteNode}=useNode();
   const {insertComment,editComment,deleteComment}=useComment(null);
   const handleInsertComment=(commentId,comment)=>{
-    insertComment(blogId,commentId,comment,auth.userId,sendRequest);
+    insertComment(blogId,commentId,comment,auth.userId,sendRequest,auth.token);
   }
   const handleEditComment=(commentId,comment)=>{
-    editComment(blogId,commentId,comment,sendRequest);
+    editComment(blogId,commentId,comment,sendRequest,auth.token);
   }
   const handleDeleteComment=(commentId)=>{
-    deleteComment(loadedBlog.blogId,commentId,sendRequest);
+    deleteComment(loadedBlog.blogId,commentId,sendRequest,auth.token);
   }
   // const handleInsertNode = (folderId,item)=>{
   //   const finalStructure= insertNode(commentsData,folderId,item);
@@ -50,7 +50,7 @@ const BlogOne = () => {
   const fetchComment = async ()=>{
   try{
       const responseData = await sendRequest(
-        `http://localhost:5000/api/comments/${blogId}`
+        process.env.REACT_APP_BACKEND_URL+`/comments/${blogId}`
       );
       setCommentsData(Object.values(responseData.comments)[0]);
       console.log(Object.values(responseData.comments));
@@ -60,7 +60,7 @@ const BlogOne = () => {
     const fetchBlog = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/blogs/${blogId}`
+          process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}`
         );
         setLoadedBlog(responseData.blog);
       } catch (err) {}
@@ -69,7 +69,7 @@ const BlogOne = () => {
     const fetchLikeCount = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/blogs/${blogId}/likedUsers`
+          process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}/likedUsers`
         );
         setLikeCount(responseData.likedUsers.length);
       } catch(err) {}
@@ -83,7 +83,7 @@ const BlogOne = () => {
     // .includes() is used to check whether an element is present in the array
     try {
       const responseData = await sendRequest(
-        `http://localhost:5000/api/blogs/${blogId}/likedUsers`
+        process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}/likedUsers`
       );
       if (
         auth.userId !== null &&
@@ -91,13 +91,14 @@ const BlogOne = () => {
       ) {
         try {
           await sendRequest(
-            `http://localhost:5000/api/blogs/${blogId}/likedUsers`,
+            process.env.REACT_APP_BACKEND_URL+`/blogs/${blogId}/likedUsers`,
             "PATCH",
             JSON.stringify({
               userId: auth.userId,
             }),
             {
               "Content-Type": "application/json",
+              Authorization: "Bearer "+ auth.token
             }
           );
           setLikeCount((likeCount) => likeCount + 1);

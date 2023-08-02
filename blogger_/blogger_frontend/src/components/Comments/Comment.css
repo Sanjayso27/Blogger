@@ -26,6 +26,7 @@
     display: flex;
     align-items: baseline;
     gap: 5px;
+    margin: 10px;
   }
   
   .inputContainer > span {

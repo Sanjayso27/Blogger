@@ -12,7 +12,7 @@ const Blogs = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const responseData= await sendRequest("http://localhost:5000/api/blogs/");
+        const responseData= await sendRequest(process.env.REACT_APP_BACKEND_URL+"/blogs/");
         setLoadedBlogs(responseData.blogs);
       } catch (err) {}
     };
