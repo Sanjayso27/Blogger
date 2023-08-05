@@ -4,17 +4,30 @@ const bcrypt = require("bcryptjs");
 const { v4 } = require("uuid");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-
+const Redis = require("redis");
+const DEFAULT_EXPIRATION =3600;
+const redisClient =Redis.createClient();
+redisClient.connect().then().catch((err) => console.log(err))
 const getUsers = async (req, res, next) => {
   // projection
   // for getting all the items without the password key
   let users;
-  try {
-    users = await User.find({}, "-password");
-  } catch (err) {
-    return next(new HttpError("couldn't get all users", 500));
+  users=await redisClient.get("users");
+  if(users!=null){
+    console.log("Cache hit")
+    res.json({ users: JSON.parse(users)});
   }
-  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
+  else {
+    console.log("Cache miss")
+    try {
+      users = await User.find({}, "-password");
+    } catch (err) {
+      return next(new HttpError("couldn't get all users", 500));
+    }
+    users=users.map((user) => user.toObject({ getters: true }));
+    await redisClient.setEx("users",DEFAULT_EXPIRATION,JSON.stringify(users));
+    res.json({ users: users });
+  }
 };
 
 // by default none of the file in our server is available from outside
@@ -64,10 +77,11 @@ const signup = async (req, res, next) => {
   try{
     token=jwt.sign({
       userId: createdUser.id,email: createdUser.email
-    },'Sanjay',{expiresIn: '1h'});
+    },process.env.JWT_KEY,{expiresIn: '1h'});
   } catch(err){
     return next(new HttpError("Couldn't Signup!", 500));
   }
+  await redisClient.del("users");
   res.status(201).json({userId:createdUser.id,email: createdUser.email,token:token});
 }
 const login = async (req, res, next) => {
@@ -95,7 +109,7 @@ const login = async (req, res, next) => {
   try{
     token=jwt.sign({
       userId: existingUser.id,email: existingUser.email
-    },'Sanjay',{expiresIn: '1h'});
+    },process.env.JWT_KEY,{expiresIn: '1h'});
   } catch(err){
     return next(new HttpError("Couldn't Login!", 500));
   }

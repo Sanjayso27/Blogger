@@ -5,15 +5,28 @@ const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
 const Blog = require("../models/blog");
 const User = require("../models/user");
-
+const Redis = require("redis");
+const redisClient =Redis.createClient();
+const DEFAULT_EXPIRATION =3600;
+redisClient.connect().then().catch((err) => console.log(err))
 const getBlogs = async (req, res, next) => {
   let blogs;
-  try {
-    blogs = await Blog.find({}, "-content");
-  } catch (err) {
-    return next(new HttpError("couldn't get all blogs", 500));
+  blogs=await redisClient.get("blogs");
+  if(blogs!=null){
+    console.log("Cache hit")
+    res.json({ blogs: JSON.parse(blogs)});
   }
-  res.json({ blogs: blogs.map((blog) => blog.toObject({ getters: true })) });
+  else {
+    console.log("Cache miss")
+    try {
+      blogs = await Blog.find({}, "-content");
+    } catch (err) {
+      return next(new HttpError("couldn't get all blogs", 500));
+    }
+    blogs=blogs.map((blog) => blog.toObject({ getters: true })) 
+    await redisClient.setEx("blogs",DEFAULT_EXPIRATION,JSON.stringify(blogs));
+    res.json({ blogs: blogs});
+  }
 };
 
 const getBlogById = async (req, res, next) => {

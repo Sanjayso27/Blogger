@@ -59,7 +59,7 @@ app.use((error, req, res, next) => {
 // 8gllHWy76H7TsML3
 mongoose
   .connect(
-    `mongodb+srv://sanjaykannu27:8gllHWy76H7TsML3@cluster0.dm6mz8y.mongodb.net/blogs?retryWrites=true&w=majority`
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.dm6mz8y.mongodb.net/blogs?retryWrites=true&w=majority`
     // `mongodb+srv://Sanjay:Sanjay@cluster0.yu4vq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
   )
   .then(() => {
