@@ -32,24 +32,33 @@ const getBlogs = async (req, res, next) => {
 const getBlogById = async (req, res, next) => {
   const blogId = req.params.bid; //reqs object has params property
   //   find returns the first item in the array that satisfy a test
-  let blog;
-  try {
-    // findById is a function directly applied to the constructor
-    // it don't return a promise but we can use .exec() to convert it to a promise
-    // but mongoose allow us to use aync await too.
-    blog = await Blog.findById(blogId);
-  } catch (err) {
-    return next(new HttpError("Couldn't get the blog from the database", 500));
+  let blog=await redisClient.get("blogs"+blogId);
+  if(blog!=null){
+    console.log("Cache hit")
+    res.json({ blog: JSON.parse(blog)});
   }
-  if (!blog) {
-    // how to trigger the error handling middleware either throw new error here or pass the error to next function
-    // if we are in async midddleware(database) we should use next(error) else we can use throw
-    return next(
-      new HttpError("Couldn't find the blog for provided blog Id", 404)
-    );
+  else {
+    console.log("Cache miss")
+    try {
+      // findById is a function directly applied to the constructor
+      // it don't return a promise but we can use .exec() to convert it to a promise
+      // but mongoose allow us to use aync await too.
+      blog = await Blog.findById(blogId);
+    } catch (err) {
+      return next(new HttpError("Couldn't get the blog from the database", 500));
+    }
+    if (!blog) {
+      // how to trigger the error handling middleware either throw new error here or pass the error to next function
+      // if we are in async midddleware(database) we should use next(error) else we can use throw
+      return next(
+        new HttpError("Couldn't find the blog for provided blog Id", 404)
+      );
+    }
+    // blog is a mongoose object hence we convert it into a js object and we set getters:true so that we get an additional id field
+    blog=blog.toObject({ getters: true });
+    await redisClient.setEx("blogs"+blogId,DEFAULT_EXPIRATION,JSON.stringify(blog));
+    res.json({ blog: blog});
   }
-  // blog is a mongoose object hence we convert it into a js object and we set getters:true so that we get an additional id field
-  res.json({ blog: blog.toObject({ getters: true }) });
 };
 
 const getLikedUsers = async (req, res, next) => {
@@ -98,21 +107,30 @@ const updateLikedUsers = async (req, res, next) => {
 
 const getBlogsByUserId = async (req, res, next) => {
   const userId = req.params.uid;
-  let userWithBlogs;
-  try {
-    // it will populate the blogs field of userWithBlogs with the blogs
-    userWithBlogs = await User.findById(userId).populate("blogs");
-  } catch (err) {
-    return next(new HttpError("Fetching Blogs is failed", 500));
+  let userWithBlogs=await redisClient.get("userBlogs"+userId);
+  if(userWithBlogs!=null){
+    console.log("Cache hit")
+    res.json({ blogs: JSON.parse(userWithBlogs)});
   }
-  if (!userWithBlogs || userWithBlogs.length === 0) {
-    return next(
-      new HttpError("Couldn't find the blogs for provided userId", 404)
-    );
+  else {
+    try {
+      // it will populate the blogs field of userWithBlogs with the blogs
+      userWithBlogs = await User.findById(userId).populate("blogs");
+    } catch (err) {
+      return next(new HttpError("Fetching Blogs is failed", 500));
+    }
+    if (!userWithBlogs || userWithBlogs.length === 0) {
+      return next(
+        new HttpError("Couldn't find the blogs for provided userId", 404)
+      );
+    }
+    console.log("cache miss");
+    userWithBlogs=userWithBlogs.blogs.map((e) => e.toObject({ getters: true }));
+    await redisClient.setEx("userBlogs"+userId,DEFAULT_EXPIRATION,JSON.stringify(userWithBlogs));
+    res.json({
+      blogs: userWithBlogs
+    });
   }
-  res.json({
-    blogs: userWithBlogs.blogs.map((e) => e.toObject({ getters: true })),
-  });
 };
 
 const createBlog = async (req, res, next) => {
@@ -163,6 +181,10 @@ const createBlog = async (req, res, next) => {
     await user.save({ session: sess });
     // console.log("User saved")
     await sess.commitTransaction();
+    await redisClient.del("userBlogs"+creator);
+    console.log("userblogs cache cleared")
+    await redisClient.del("blogs");
+    console.log("blogs cache cleared")
   } catch (error) {
     return next(new HttpError("Couldn't create a blog!", 500));
   }
@@ -195,6 +217,12 @@ const updateBlog = async (req, res, next) => {
   try {
     // there is save() function associated with blog returned using .findById as well
     await blog.save();
+    await redisClient.del("blogs"+blogId)
+    console.log("blogsbyId cache cleared")
+    await redisClient.del("userBlogs"+req.userData.userId);
+    console.log("userblogs cache cleared")
+    await redisClient.del("blogs");
+    console.log("blogs cache cleared")
   } catch (err) {
     return next(
       new HttpError("Couldn't save the updated blog into the database!", 500)
@@ -234,6 +262,12 @@ if(place.creator.id!==req.userData.userId){
     blog.creator.blogs.pull(blog);
     await blog.creator.save({ session: sess });
     await sess.commitTransaction();
+    await redisClient.del("blogs"+blogId)
+    console.log("blogsbyId cache cleared")
+    await redisClient.del("userBlogs"+req.userData.userId);
+    console.log("userblogs cache cleared")
+    await redisClient.del("blogs");
+    console.log("blogs cache cleared")
   } catch (err) {
     return next(new HttpError("Couldn't delete the blog!", 500));
   }

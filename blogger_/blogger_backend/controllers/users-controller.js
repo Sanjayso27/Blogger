@@ -82,6 +82,7 @@ const signup = async (req, res, next) => {
     return next(new HttpError("Couldn't Signup!", 500));
   }
   await redisClient.del("users");
+  console.log("users cache cleared");
   res.status(201).json({userId:createdUser.id,email: createdUser.email,token:token});
 }
 const login = async (req, res, next) => {

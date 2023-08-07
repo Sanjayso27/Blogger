@@ -4,48 +4,62 @@ const { validationResult } = require("express-validator");
 const Blog = require("../models/blog");
 const User = require("../models/user");
 const Comment=require("../models/comment");
+const Redis = require("redis");
+const redisClient =Redis.createClient();
+const DEFAULT_EXPIRATION =3600;
+redisClient.connect().then().catch((err) => console.log(err))
 
 const getCommentsByBlogId=async (req,res,next)=>{
     const blogId=req.params.bid;
-    let comments;
-    try{
-        comments = await Comment.find({blogId:blogId}).sort({date: 1}).exec();
-    }catch(err){
-        return next(new HttpError("Couldn't get the comments from the database", 500));
+    let comments=await redisClient.get("comments"+blogId);
+    if(comments!=null){
+        console.log("Cache hit");
+        res.json({
+            'comments': JSON.parse(comments)
+        })
     }
-    if(!comments){
-        return next(
-            new HttpError("Couldn't find the comments for provided blog Id", 404)
-          );
-    }
-    comments=comments.map(comment=>comment.toObject())
-    let add=(comment,threads)=>{
-        for(let thread in threads){
-            value=threads[thread];
-            if(thread.toString()===comment.parentId.toString()){
-                value.children[comment._id]=comment;
-                return;
-            }
-            if(value.children){
-                add(comment,value.children);
+    else {
+        console.log("Cache miss");
+        try{
+            comments = await Comment.find({blogId:blogId}).sort({date: 1}).exec();
+        }catch(err){
+            return next(new HttpError("Couldn't get the comments from the database", 500));
+        }
+        if(!comments){
+            return next(
+                new HttpError("Couldn't find the comments for provided blog Id", 404)
+              );
+        }
+        comments=comments.map(comment=>comment.toObject())
+        let add=(comment,threads)=>{
+            for(let thread in threads){
+                value=threads[thread];
+                if(thread.toString()===comment.parentId.toString()){
+                    value.children[comment._id]=comment;
+                    return;
+                }
+                if(value.children){
+                    add(comment,value.children);
+                }
             }
         }
-    }
-    // console.log(comments) 
-    let threads={},comment;
-    for(let i=0;i<comments.length;i++){
-        comment=comments[i];
-        comment['children']={}
-        let parentId=comment.parentId
-        if(!parentId){
-            threads[comment._id]=comment;
-            continue;
+        // console.log(comments) 
+        let threads={},comment;
+        for(let i=0;i<comments.length;i++){
+            comment=comments[i];
+            comment['children']={}
+            let parentId=comment.parentId
+            if(!parentId){
+                threads[comment._id]=comment;
+                continue;
+            }
+            add(comment,threads)
         }
-        add(comment,threads)
+        await redisClient.setEx("comments"+blogId,DEFAULT_EXPIRATION,JSON.stringify(threads))
+        res.json({
+            'comments': threads
+        })
     }
-    res.json({
-        'comments': threads
-    })
 }
 const insertComment=async (req,res,next)=>{
   const errors = validationResult(req);
@@ -60,6 +74,8 @@ const insertComment=async (req,res,next)=>{
   const createdComment = new Comment(tmpComment);
   try{
     await createdComment.save();
+    await redisClient.del("comments"+tmpComment.blogId);
+    console.log("comments cache cleared")
     res.status(201).json({ comment: createdComment });
   }
   catch(err){ res.status(500).json({error: err})}
@@ -82,9 +98,12 @@ const updateComment=async(req,res,next)=>{
           );
     }
     comment.content=content;
+    let blogId=comment.blogId;
     try {
         // there is save() function associated with blog returned using .findById as well
         await comment.save();
+        await redisClient.del("comments"+blogId);
+        console.log("comments cache cleared")
       } catch (err) {
         return next(
           new HttpError("Couldn't save the updated comment into the database!", 500)
@@ -94,6 +113,7 @@ const updateComment=async(req,res,next)=>{
 }
 const deleteComment=async (req,res,next)=>{
     let commentId=req.params.cid;
+    let blogId=await Comment.findById(commentId).blogId;
     let del=async (commentId)=>{
         let comments;
         try{
@@ -117,6 +137,8 @@ const deleteComment=async (req,res,next)=>{
         });
     }
     del(commentId);
+    redisClient.del("comments"+blogId);
+    console.log("comments cache cleared");
     res.status(200).json({ message: "Deleted" });
 }
 
@@ -128,6 +150,8 @@ const deleteCommentByBlogId=async (req,res,next)=>{
     }catch(err){
         return next(new HttpError("Couldn't find the comments from the database", 500));
     }
+    redisClient.del("comments"+blogId);
+    console.log("comments cache cleared");
     res.status(200).json({ message: "Deleted" });
 }
 
